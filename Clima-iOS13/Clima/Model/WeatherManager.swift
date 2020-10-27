@@ -17,29 +17,36 @@ struct WeatherManager {
     }
     
     func performRequest(urlString: String) {
-        // 1. url 생성
         if let url = URL(string: urlString) {
-            
-            // 2. url 세션 생성
             let session = URLSession(configuration: .default)
             
-            // 3. 태스크 생성
             let task = session.dataTask(with: url) { (data, reponse, error) in
                 if error != nil {
                     print(error!)
                     return
                 }
-                
                 if let safeData = data {
-                    let dataString = String(data: safeData, encoding: .utf8)
-                    print(dataString!)
+                    self.parseJSON(weatherData: safeData)
                 }
             }
-            
-            // 4. 태스크 실행
             task.resume()
         }
-        
+    }
+    
+    func parseJSON(weatherData: Data) {
+        let decoder = JSONDecoder()
+        do {
+            let decodedData = try decoder.decode(WeatherData.self, from: weatherData)
+            let id = decodedData.weather[0].id
+            let temp = decodedData.main.temp
+            let name = decodedData.name
+            
+            let weather = WeatherModel(conditionId: id, temperature: temp, cityName: name)
+            
+            print(weather.temparatureToString)
+        } catch {
+            print(error)
+        }
     }
     
 }
